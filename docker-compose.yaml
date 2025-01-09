@@ -1,0 +1,33 @@
+services:
+  app:
+    container_name: golang_backend
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    tty: true
+    build: .
+    ports:
+      - 8080:8080
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - postgresdb
+    networks:
+      - learning
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - '5432:5432'
+    networks:
+      - learning
+
+networks:
+  learning:
