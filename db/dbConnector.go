@@ -3,10 +3,11 @@ package db
 import (
 	"BankApp/resources/models"
 	"fmt"
+	"os"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 )
 
 var database *gorm.DB
@@ -14,21 +15,23 @@ var database *gorm.DB
 // Get environment variables
 // for the PostgresSQL
 // return username, password, dbName
-func getEnv() (string, string, string) {
+func getEnv() (int, string, string, string, string) {
 	e := godotenv.Load(".env")
 	if e != nil {
 		fmt.Print(e)
 	}
+	host := os.Getenv("DB_HOST")
+	port := 5432
 	username := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
-	return username, password, dbName
+	return port, host, username, password, dbName
 }
 
 // Connect to PostgresSQL
 // opening connection and do AutoMigration
-func connectToDatabase(username, password, dbName string) {
-	dsn := fmt.Sprintf("user=%s dbname=%s sslmode=disable password=%s", username, dbName, password)
+func connectToDatabase(port int, host, username, password, dbName string) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s", host, port, username, dbName, password)
 	fmt.Println(dsn)
 
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
