@@ -1,7 +1,7 @@
 package models
 
 // Struct for creating user
-type CreateUserStruct struct {
+type User struct {
 	FirstName  string
 	SecondName string
 	ThirdName  string

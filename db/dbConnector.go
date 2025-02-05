@@ -40,7 +40,7 @@ func connectToDatabase(port int, host, username, password, dbName string) {
 	}
 
 	database = conn
-	err = database.Debug().AutoMigrate(&models.User{})
+	err = database.Debug().AutoMigrate(&models.UserDb{})
 	if err != nil {
 		fmt.Println("AutoMigrate error")
 	}
