@@ -2,6 +2,7 @@ package main
 
 import (
 	"BankApp/internal/handlers"
+	jwtPack "BankApp/jwt"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -10,8 +11,8 @@ import (
 )
 
 func main() {
+	jwtPack.InitSecretKey()
 	router := gin.Default()
-
 	router.GET("/UserData", handlers.GetUserData)
 	router.POST("/CreateUser", handlers.CreateUser)
 	// @Summary Add a new pet to the store

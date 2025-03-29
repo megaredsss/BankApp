@@ -5,6 +5,7 @@ import (
 )
 
 func CreateJWT() *jwt.Token {
+
 	return jwt.New(jwt.SigningMethodES384)
 }
 
