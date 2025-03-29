@@ -16,11 +16,18 @@ var database *gorm.DB
 // for the PostgresSQL
 // return username, password, dbName
 func getEnv() (int, string, string, string, string) {
+	var host string
 	e := godotenv.Load(".env")
 	if e != nil {
 		fmt.Print(e)
 	}
-	host := os.Getenv("DB_HOST")
+	fmt.Println(host, os.Getenv("POSTGRES_HOST"))
+	if os.Getenv("POSTGRES_HOST") == "" {
+		host = "localhost"
+	} else {
+		host = os.Getenv("POSTGRES_HOST")
+	}
+	// host := os.Getenv("DB_HOST")
 	port := 5432
 	username := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")

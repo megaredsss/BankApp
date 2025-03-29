@@ -13,7 +13,6 @@ services:
     depends_on:
       - postgresdb
 
-
   postgresdb:
     image: postgres:latest
     container_name: postgres_container
@@ -24,4 +23,4 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     ports:
-      - '5432:5432'
+      - "5432:5432"

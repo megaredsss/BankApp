@@ -3,9 +3,10 @@ package main
 import (
 	"BankApp/internal/handlers"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
