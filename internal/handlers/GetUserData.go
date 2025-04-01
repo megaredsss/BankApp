@@ -11,7 +11,7 @@ import (
 // Get user's Balance
 // by first name, second name and third name
 func GetUserData(c *gin.Context) {
-	var user models.User
+	var user models.UserDb
 	usersFirstName := c.DefaultQuery("first_name", "")
 	usersSecondName := c.DefaultQuery("second_name", "")
 	usersThirdName := c.DefaultQuery("third_name", "")
