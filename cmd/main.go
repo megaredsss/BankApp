@@ -15,6 +15,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/UserData", handlers.GetUserData)
 	router.POST("/CreateUser", handlers.CreateUser)
+	router.GET("/Login", handlers.LoginHandler)
 	// @Summary Add a new pet to the store
 	// @Description get string by ID
 	// @ID get-string-by-int
