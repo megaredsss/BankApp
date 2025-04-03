@@ -31,7 +31,7 @@ func VerifyJWT(userToken string) (bool, error) {
 	if tokenClaims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		expTime := int64(tokenClaims["exp"].(float64))
 		if time.Now().Unix() > expTime {
-			return false, fmt.Errorf("Token expires")
+			return false, fmt.Errorf("Token expired")
 		}
 		return true, nil
 	}
