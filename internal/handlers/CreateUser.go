@@ -8,7 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Creating User
+// CreateUser godoc
+// @Summary      Создание нового пользователя
+// @Description  Создание нового пользователя с заданными данными
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user body models.UserDb true "Данные нового пользователя"
+// @Success      200 {object} models.UserDb "Успешное создание пользователя"
+// @Failure      400 {object} gin.H{"error": "Ошибка валидации данных"}
+// @Failure      500 {object} gin.H{"error": "Ошибка сервера"}
+// @Router       /CreateUser [post]
 func CreateUser(c *gin.Context) {
 	var inputUserData models.UserDb
 	if err := c.ShouldBindJSON(&inputUserData); err != nil {

@@ -12,6 +12,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// LoginHandler godoc
+// @Summary      Аутентификация пользователя
+// @Description  Обрабатывает запросы на аутентификацию, проверяя наличие пользователя в базе данных и создавая JWT-токен.
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Param        userData body models.LoginUser true "Данные пользователя для аутентификации"
+// @Success      200 {object} gin.H{"message": "Аутентификация успешна"} "Успешная аутентификация"
+// @Failure      400 {object} gin.H{"error": "Неверный запрос"} "Ошибка в запросе"
+// @Failure      401 {object} gin.H{"error": "Неверное имя пользователя"} "Пользователь не найден"
+// @Failure      500 {object} gin.H{"error": "Ошибка сервера"} "Внутренняя ошибка сервера"
+// @Router       /Login [post]
 func LoginHandler(c *gin.Context) {
 	var userData models.LoginUser
 	var userDb models.UserDb
@@ -39,6 +51,16 @@ func LoginHandler(c *gin.Context) {
 	fmt.Println(userData, usersToken)
 	c.SetCookie("jwt", usersToken, 3600, "/", "", false, true)
 }
+
+// TokenChecker godoc
+// @Summary      Проверка JWT-токена
+// @Description  Middleware для проверки наличия и валидности JWT-токена.
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Failure      401 {object} gin.H{"error": "No token"} "Отсутствует токен"
+// @Failure      401 {object} gin.H{"error": "Invalid token"} "Неверный токен"
+// @Router       / [any]
 func TokenChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, err := c.Cookie("jwt")

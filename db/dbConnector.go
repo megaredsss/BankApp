@@ -12,9 +12,9 @@ import (
 
 var database *gorm.DB
 
-// Get environment variables
-// for the PostgresSQL
-// return username, password, dbName
+// getEnv() получает значения необходимые для подключения к PostgresSQL
+// @param int, string, string, string, string - порт, адрес, имя пользователя, пароль, имя базы данных
+// @return int, string, string, string, string - порт, адрес, имя пользователя, пароль, имя базы данных
 func getEnv() (int, string, string, string, string) {
 	var host string
 	e := godotenv.Load(".env")
@@ -27,7 +27,6 @@ func getEnv() (int, string, string, string, string) {
 	} else {
 		host = os.Getenv("POSTGRES_HOST")
 	}
-	// host := os.Getenv("DB_HOST")
 	port := 5432
 	username := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
@@ -36,7 +35,7 @@ func getEnv() (int, string, string, string, string) {
 }
 
 // Connect to PostgresSQL
-// opening connection and do AutoMigration
+// @param int, string, string, string, string - порт, адрес, имя пользователя, пароль, имя базы данных
 func connectToDatabase(port int, host, username, password, dbName string) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s", host, port, username, dbName, password)
 	fmt.Println(dsn)
@@ -57,6 +56,8 @@ func init() {
 	connectToDatabase(getEnv())
 }
 
+// GetDB() возвращает базу данных
+// @return *gorm.DB база данных
 func GetDB() *gorm.DB {
 	return database
 }
