@@ -3,10 +3,12 @@ package handlers
 import (
 	"BankApp/db"
 	jwtPack "BankApp/jwt"
+	"BankApp/pkg/redisPack"
 	"BankApp/resources/models"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,7 +16,7 @@ import (
 
 // LoginHandler godoc
 // @Summary      Аутентификация пользователя
-// @Description  Обрабатывает запросы на аутентификацию, проверяя наличие пользователя в базе данных и создавая JWT-токен.
+// @Description  Обрабатывает запросы на аутентификацию, проверяя наличие пользователя в базе данных и создавая JWT-токен и сохраняя его в Redis.
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
@@ -49,7 +51,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	fmt.Println(userData, usersToken)
-	c.SetCookie("jwt", usersToken, 3600, "/", "", false, true)
+	redisPack.GetRedis().Set(c, userData.FirstName+userData.SecondName+userData.ThirdName, usersToken, time.Hour)
 }
 
 // TokenChecker godoc
@@ -61,9 +63,9 @@ func LoginHandler(c *gin.Context) {
 // @Failure      401 {object} gin.H{"error": "No token"} "Отсутствует токен"
 // @Failure      401 {object} gin.H{"error": "Invalid token"} "Неверный токен"
 // @Router       / [any]
-func TokenChecker() gin.HandlerFunc {
+func TokenChecker(usersCredits string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString, err := c.Cookie("jwt")
+		tokenString, err := redisPack.GetRedis().Get(c, usersCredits).Result()
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token"})
 			c.Abort()
