@@ -42,6 +42,7 @@ func ConnectRedis(Addr string, Password string, DB int) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(fmt.Sprintf("addr=%s, password=%s, db=%d", Addr, Password, DB))
 	client = &RedisClient{client: rds}
 	return nil
 }

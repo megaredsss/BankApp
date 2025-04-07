@@ -16,6 +16,7 @@ func main() {
 	router.GET("/UserData", handlers.GetUserData)
 	router.POST("/CreateUser", handlers.CreateUser)
 	router.POST("/Login", handlers.LoginHandler)
+	router.GET("/Balance", handlers.TokenChecker, handlers.GetBalance)
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	err := router.Run(":8080")

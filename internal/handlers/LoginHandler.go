@@ -51,7 +51,8 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	fmt.Println(userData, usersToken)
-	redisPack.GetRedis().Set(c, userData.FirstName+userData.SecondName+userData.ThirdName, usersToken, time.Hour)
+	redisPack.GetRedis().Set(c, usersToken, userDb.ID, time.Hour)
+	c.SetCookie("jwt", usersToken, 3600, "/", "", false, true)
 }
 
 // TokenChecker godoc
@@ -63,20 +64,18 @@ func LoginHandler(c *gin.Context) {
 // @Failure      401 {object} gin.H{"error": "No token"} "Отсутствует токен"
 // @Failure      401 {object} gin.H{"error": "Invalid token"} "Неверный токен"
 // @Router       / [any]
-func TokenChecker(usersCredits string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenString, err := redisPack.GetRedis().Get(c, usersCredits).Result()
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token"})
-			c.Abort()
-			return
-		}
-		tokenStatus, err := jwtPack.VerifyJWT(tokenString)
-		if !tokenStatus {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
-			c.Abort()
-			return
-		}
-		c.Next()
+func TokenChecker(c *gin.Context) {
+	tokenString, err := c.Cookie("jwt")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token in Cookie"})
+		c.Abort()
+		return
 	}
+	tokenStatus, err := jwtPack.VerifyJWT(tokenString)
+	if !tokenStatus {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+		c.Abort()
+		return
+	}
+	c.Next()
 }

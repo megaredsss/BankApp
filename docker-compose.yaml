@@ -25,7 +25,7 @@ services:
     ports:
       - "5432:5432"
 
-  redis: # Add Redis service
+  redis:
     image: redis:latest
     container_name: redis_container
     ports:

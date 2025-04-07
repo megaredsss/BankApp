@@ -14,6 +14,7 @@ import (
 type RedisInterface interface {
 	Set(ctx context.Context, key string, value interface{}, expTime time.Duration) *redis.StatusCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
+	Del(ctx context.Context, key string) *redis.IntCmd
 	Ping(ctx context.Context) *redis.StatusCmd
 }
 
@@ -41,6 +42,10 @@ func (rds *RedisClient) Set(ctx context.Context, key string, value interface{}, 
 // @return *redis.StringCmd - результат выполнения операции
 func (rds *RedisClient) Get(ctx context.Context, key string) *redis.StringCmd {
 	return rds.client.Get(ctx, key)
+}
+
+func (rds *RedisClient) Del(ctx context.Context, key string) *redis.IntCmd {
+	return rds.client.Del(ctx, key)
 }
 
 // @method Ping - метод для проверки соединения с Redis
