@@ -13,10 +13,9 @@ import (
 func main() {
 	jwtPack.InitSecretKey()
 	router := gin.Default()
-	router.GET("/UserData", handlers.GetUserData)
 	router.POST("/CreateUser", handlers.CreateUser)
 	router.POST("/Login", handlers.LoginHandler)
-	router.GET("/Balance", handlers.TokenChecker, handlers.GetBalance)
+	router.GET("/GetBalance", handlers.TokenChecker, handlers.GetUsersBalance)
 	router.DELETE("/DeleteUser", handlers.DeleteUser)
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))

@@ -3,6 +3,7 @@ package handlers
 import (
 	"BankApp/db"
 	"BankApp/resources/models"
+	"net/mail"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +14,10 @@ func DeleteUser(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	result := db.GetDB().Where("first_name = ? AND second_name = ? AND third_name = ?", user.FirstName, user.SecondName, user.ThirdName).Delete(&user)
+	if _, err := mail.ParseAddress(user.Email); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+	}
+	result := db.GetDB().Where("email = ? AND password = ?", user.Email, user.Password).Delete(&user)
 	if result.Error != nil {
 		c.JSON(500, gin.H{"error": result.Error.Error()})
 		return

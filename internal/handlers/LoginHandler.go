@@ -3,8 +3,8 @@ package handlers
 import (
 	"BankApp/db"
 	jwtPack "BankApp/jwt"
-	"BankApp/pkg/redisPack"
 	"BankApp/resources/models"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,29 +29,33 @@ import (
 func LoginHandler(c *gin.Context) {
 	var userData models.LoginUser
 	var userDb models.UserDb
+	ctx := context.Background()
 	if err := c.ShouldBindJSON(&userData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
 	fmt.Println(userData)
-	if err := db.GetDB().Where("first_name = ? AND second_name = ? AND third_name = ?", userData.FirstName, userData.SecondName, userData.ThirdName).First(&userDb).Error; err != nil {
+	if err := db.GetDB().Where("email = ? AND password = ?", userData.Email, userData.Password).First(&userDb).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Println("Not found")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
 			return
 		} else {
-			fmt.Println("Bad query", err)
+
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			return
 		}
 	} else {
-		fmt.Println("User found", userData.FirstName, userData.SecondName, userData.ThirdName)
+		c.JSON(http.StatusFound, gin.H{"message": "User found"})
 	}
-	usersToken, err := jwtPack.CreateJWT(int(userDb.ID), userData.FirstName, userData.SecondName)
+	usersToken, err := jwtPack.CreateJWT(int(userDb.ID), userData.Email)
 	if err != nil {
-		fmt.Println("Error in creating JWT during login", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 	fmt.Println(userData, usersToken)
-	redisPack.GetRedis().Set(c, usersToken, userDb.ID, time.Hour)
+	if err := jwtPack.SaveJWTInRedis(ctx, usersToken, userDb.ID, time.Hour); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
 	c.SetCookie("jwt", usersToken, 3600, "/", "", false, true)
 }
 
@@ -67,7 +71,7 @@ func LoginHandler(c *gin.Context) {
 func TokenChecker(c *gin.Context) {
 	tokenString, err := c.Cookie("jwt")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token in Cookie"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err})
 		c.Abort()
 		return
 	}

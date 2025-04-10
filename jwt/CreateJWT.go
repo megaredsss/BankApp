@@ -7,10 +7,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateJWT(userId int, firstName, secondName string) (string, error) {
+func CreateJWT(userId int, email string) (string, error) {
 	userClaims := jwt.MapClaims{
 		"sub":  fmt.Sprintf("%d", userId),
-		"name": firstName + " " + secondName,
+		"name": email,
 		"exp":  time.Now().Add(time.Hour).Unix(),
 		"iat":  time.Now().Unix(),
 	}

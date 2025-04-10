@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"BankApp/db"
+	"BankApp/pkg/redisPack"
 	"BankApp/resources/models"
+	"context"
 	"errors"
-	"fmt"
+	"net/mail"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,19 +14,26 @@ import (
 
 // Get user's Balance
 // by first name, second name and third name
-func GetUserData(c *gin.Context) {
+func GetUsersBalance(c *gin.Context) {
 	var user models.UserDb
-	usersFirstName := c.DefaultQuery("first_name", "")
-	usersSecondName := c.DefaultQuery("second_name", "")
-	usersThirdName := c.DefaultQuery("third_name", "")
-	if err := db.GetDB().Select("balance").Where("first_name = ? AND second_name = ? AND third_name = ?", usersFirstName, usersSecondName, usersThirdName).First(&user).Error; err != nil {
+	usersEmail := c.DefaultQuery("email", "")
+	if _, err := mail.ParseAddress(usersEmail); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	usersID, ok := redisPack.GetRedis().Get(context.Background(), usersEmail).Result()
+	if ok != nil {
+		c.JSON(400, gin.H{"error": "User not found"})
+		return
+	}
+	if err := db.GetDB().Select("balance").Where("id = ?", usersID).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Println("Not found")
+			c.JSON(400, gin.H{"error": gorm.ErrRecordNotFound})
 		} else {
-			fmt.Println("Bad query", err)
+			c.JSON(400, gin.H{"error": err})
 		}
 	} else {
-		fmt.Println("User found", user.FirstName, user.SecondName, user.ThirdName)
+		c.JSON(200, gin.H{"User found": user.FirstName + user.SecondName})
 	}
 	c.JSON(200, user.Balance)
 }

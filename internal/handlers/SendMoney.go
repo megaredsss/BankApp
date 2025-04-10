@@ -16,16 +16,16 @@ func SendMoney(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	sender := models.UserDb{FirstName: inputData.SenderUser.FirstName, SecondName: inputData.SenderUser.SecondName, ThirdName: inputData.SenderUser.ThirdName}
-	receiver := models.UserDb{FirstName: inputData.ReceiverUser.FirstName, SecondName: inputData.ReceiverUser.SecondName, ThirdName: inputData.ReceiverUser.ThirdName}
+	sender := models.UserDb{Email: inputData.SenderUser.Email}
+	receiver := models.UserDb{Email: inputData.SenderUser.Email}
 	amount := inputData.Amount
 	if amount < 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Amount must be positive"})
 	}
-	if err := db.GetDB().Where("first_name = ? AND second_name = ? AND third_name = ?", sender.FirstName, sender.SecondName, sender.ThirdName).First(&sender).Error; err != nil {
+	if err := db.GetDB().Where("email = ?", sender.Email).First(&sender).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Sender not found"})
 	}
-	if err := db.GetDB().Where("first_name = ? AND second_name = ? AND third_name = ?", receiver.FirstName, receiver.SecondName, receiver.ThirdName).First(&receiver).Error; err != nil {
+	if err := db.GetDB().Where("email = ?", receiver.Email).First(&receiver).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Receiver not found"})
 	}
 	if int(sender.Balance) < amount {

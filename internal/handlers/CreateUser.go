@@ -4,6 +4,7 @@ import (
 	"BankApp/db"
 	"BankApp/resources/models"
 	"net/http"
+	"net/mail"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,10 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	newUser := models.UserDb{FirstName: inputUserData.FirstName, SecondName: inputUserData.SecondName, ThirdName: inputUserData.ThirdName, Balance: inputUserData.Balance, Password: inputUserData.Password}
+	if _, err := mail.ParseAddress(inputUserData.Email); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+	}
+	newUser := models.UserDb{Email: inputUserData.Email, FirstName: inputUserData.FirstName, SecondName: inputUserData.SecondName, Balance: inputUserData.Balance, Password: inputUserData.Password}
 	db.GetDB().Create(&newUser)
 	c.JSON(http.StatusOK, gin.H{"data": newUser})
 }
