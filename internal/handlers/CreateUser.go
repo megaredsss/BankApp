@@ -7,6 +7,7 @@ import (
 	"net/mail"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 // CreateUser godoc
@@ -22,14 +23,24 @@ import (
 // @Router       /CreateUser [post]
 func CreateUser(c *gin.Context) {
 	var inputUserData models.UserDb
+	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := c.ShouldBindJSON(&inputUserData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := validate.Struct(inputUserData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if _, err := mail.ParseAddress(inputUserData.Email); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.GetDB().Where("email = ?", inputUserData.Email).First(&inputUserData).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"data": "User already exist"})
+		return
 	}
 	newUser := models.UserDb{Email: inputUserData.Email, FirstName: inputUserData.FirstName, SecondName: inputUserData.SecondName, Balance: inputUserData.Balance, Password: inputUserData.Password}
 	db.GetDB().Create(&newUser)
-	c.JSON(http.StatusOK, gin.H{"data": newUser})
+	c.JSON(http.StatusCreated, gin.H{"data": newUser})
 }

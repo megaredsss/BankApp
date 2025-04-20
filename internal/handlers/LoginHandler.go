@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -30,18 +31,22 @@ func LoginHandler(c *gin.Context) {
 	var userData models.LoginUser
 	var userDb models.UserDb
 	ctx := context.Background()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := c.ShouldBindJSON(&userData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 		return
 	}
-	fmt.Println(userData)
+	if err := validate.Struct(userData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	if err := db.GetDB().Where("email = ? AND password = ?", userData.Email, userData.Password).First(&userDb).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		} else {
 
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 	} else {
@@ -49,12 +54,12 @@ func LoginHandler(c *gin.Context) {
 	}
 	usersToken, err := jwtPack.CreateJWT(int(userDb.ID), userData.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	fmt.Println(userData, usersToken)
 	if err := jwtPack.SaveJWTInRedis(ctx, usersToken, userDb.ID, time.Hour); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.SetCookie("jwt", usersToken, 3600, "/", "", false, true)
 }
@@ -71,15 +76,29 @@ func LoginHandler(c *gin.Context) {
 func TokenChecker(c *gin.Context) {
 	tokenString, err := c.Cookie("jwt")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 	tokenStatus, err := jwtPack.VerifyJWT(tokenString)
 	if !tokenStatus {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 	c.Next()
+}
+
+func ExpireSession(c *gin.Context) {
+	tokenString, err := c.Cookie("jwt")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	tokenStatus, err := jwtPack.VerifyJWT(tokenString)
+	if !tokenStatus {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	c.SetCookie("jwt", tokenString, -1, "/", "", false, true)
 }

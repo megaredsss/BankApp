@@ -21,17 +21,17 @@ func CreateJWT(userId int, email string) (string, error) {
 func VerifyJWT(userToken string) (bool, error) {
 	token, err := jwt.Parse(userToken, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Wrong SigningMethod", t.Header["alg"])
+			return nil, fmt.Errorf("wrong SigningMethod: %v", t.Header["alg"])
 		}
 		return getSecretKey(), nil
 	})
 	if err != nil {
-		return false, fmt.Errorf("Error in parsing: %v", err)
+		return false, fmt.Errorf("error in parsing: %v", err)
 	}
 	if tokenClaims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		expTime := int64(tokenClaims["exp"].(float64))
 		if time.Now().Unix() > expTime {
-			return false, fmt.Errorf("Token expired")
+			return false, fmt.Errorf("token expired")
 		}
 		return true, nil
 	}

@@ -2,8 +2,8 @@ package models
 
 // Struct for creating user
 type User struct {
-	FirstName  string
-	SecondName string
-	ThirdName  string
-	Balance    uint
+	FirstName  string `binding:"required,min=2"`
+	SecondName string `binding:"required,min=2"`
+	ThirdName  string `binding:"required,min=2"`
+	Balance    uint   `binding:"number"`
 }

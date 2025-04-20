@@ -1,17 +1,17 @@
 services:
-  app:
-    container_name: golang_backend
-    environment:
-      - POSTGRES_HOST=postgresdb
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-    build: .
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgresdb
+  #app:
+   # container_name: golang_backend
+    #environment:
+     # - POSTGRES_HOST=postgresdb
+      #- POSTGRES_PORT=5432
+      #- POSTGRES_USER=${DB_USERNAME}
+      #- POSTGRES_PASSWORD=${DB_PASSWORD}
+      #- POSTGRES_DB=${DB_NAME}
+    #build: .
+    #ports:
+     # - 8080:8080
+    #depends_on:
+     # - postgresdb
 
   postgresdb:
     image: postgres:latest
