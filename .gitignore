@@ -1,7 +1,3 @@
 .env
 .idea
-<<<<<<< HEAD
-config/config.yaml
-=======
 configs/config.yaml
->>>>>>> experiment
