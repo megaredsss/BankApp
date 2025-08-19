@@ -1,0 +1,32 @@
+services:
+  #app:
+   # container_name: golang_backend
+    #environment:
+     # - POSTGRES_HOST=postgresdb
+      #- POSTGRES_PORT=5432
+      #- POSTGRES_USER=${DB_USERNAME}
+      #- POSTGRES_PASSWORD=${DB_PASSWORD}
+      #- POSTGRES_DB=${DB_NAME}
+    #build: .
+    #ports:
+     # - 8080:8080
+    #depends_on:
+     # - postgresdb
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres_container
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
