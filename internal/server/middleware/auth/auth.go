@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"BankApp/internal/server/middleware/logger"
@@ -20,17 +20,20 @@ func TokenChecker(secret *jwtPack.SecretService) gin.HandlerFunc {
 			log.Error().Err(err).Msg("No token in cookie")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
+			return
 		}
 		tokenStatus, err := secret.VerifyJWT(tokenString)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to verify JWT")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			c.Abort()
+			return
 		}
 		if !tokenStatus {
 			log.Error().Msg(("Invalid token"))
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
+			return
 		}
 		c.Next()
 	}

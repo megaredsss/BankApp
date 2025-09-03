@@ -11,7 +11,7 @@ type Config struct {
 	Env         string `mapstructure:"env" env-default:"dev" env-required:"true"`
 	HTTP_Server `mapstructure:"http_server"`
 	Database    `mapstructure:"database"`
-	SecretKey   []byte `mapstructure:"secret_key" env-required:"true"`
+	SecretKey   string `mapstructure:"secretKey" env-required:"true"`
 }
 
 type HTTP_Server struct {
@@ -23,7 +23,7 @@ type Database struct {
 	Host     string `mapstructuretructure:"host" env-default:"localhost"`
 	Port     int    `mapstructure:"port" env-default:"5432"`
 	User     string `mapstructure:"user" env-required:"true"`
-	Password string `mapstructure:"pass" env-required:"true"`
+	Password string `mapstructure:"password" env-required:"true"`
 	Name     string `mapstructure:"name" env-required:"true"`
 }
 
@@ -33,7 +33,7 @@ func Loader() *Config {
 		log.Fatal("Config path is not set in environment variables")
 	}
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("Conf&ig file does not exist at path: %s", configPath)
+		log.Fatalf("Config file does not exist at path: %s", configPath)
 	}
 
 	var cfg Config
@@ -44,7 +44,7 @@ func Loader() *Config {
 		log.Fatalf("Error reading config file: %v", err)
 	}
 	if err := viper.Unmarshal(&cfg); err != nil {
-		log.Fatalf("Error reading config file: %v", err)
+		log.Fatalf("Error Unmarshaling config file: %v", err)
 	}
 	return &cfg
 }

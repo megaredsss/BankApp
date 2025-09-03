@@ -11,6 +11,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type TokenService interface {
+	CreateJWT(userId int32) (string, error)
+	VerifyJWT(userToken string) (bool, error)
+	GetIdFromClaims(tokenString string) (int32, error)
+}
+
 type SecretService struct {
 	key []byte
 }
@@ -69,11 +75,11 @@ func (service *SecretService) GetIdFromClaims(tokenString string) (int32, error)
 	if !exist {
 		return -1, errors.New("field name doesn't exist")
 	}
-	id, ok := idField.(int32)
+	id, ok := idField.(float64)
 	if !ok {
 		return -1, errors.New("field name has wrong type")
 	}
-	return id, nil
+	return int32(id), nil
 }
 
 func SaveJWTInRedis(ctx context.Context, token string, ID uint, time time.Duration) error {

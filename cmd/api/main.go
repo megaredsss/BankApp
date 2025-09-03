@@ -3,7 +3,8 @@ package main
 import (
 	"BankApp/internal/config"
 	"BankApp/internal/db"
-	handlers "BankApp/internal/server/middleware/handlers/create"
+	"BankApp/internal/server/middleware/auth"
+	handlers "BankApp/internal/server/middleware/handlers"
 	"BankApp/internal/server/middleware/logger"
 	"BankApp/internal/server/middleware/requestId"
 	jwtPack "BankApp/pkg/jwt"
@@ -22,7 +23,7 @@ func setupLogger(env string) {
 	switch env {
 	case "dev":
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime})
 	case "prod":
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
@@ -32,6 +33,7 @@ func main() {
 	cfg := config.Loader()
 	fmt.Println("Config loaded successfully:", cfg)
 	setupLogger(cfg.Env)
+	log.Info().Msg("Logger loaded sucessfully")
 	conn, err := db.ConnectToDatabase(cfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to database")
@@ -43,8 +45,14 @@ func main() {
 		}
 	}()
 	log.Info().Msgf("Connected to database %s on %s:%d", cfg.Database.Name, cfg.Database.Host, cfg.Database.Port)
+	err = db.Migrate(conn)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to migrate")
+		return
+	}
+	log.Info().Msg("Schemes migrate successfully")
 	queries := conn.CreateNew()
-	jwt := jwtPack.NewSecretService(cfg.SecretKey)
+	jwt := jwtPack.NewSecretService([]byte(cfg.SecretKey))
 	log.Info().Msg("JWT service initialized")
 
 	router := gin.New()
@@ -54,8 +62,9 @@ func main() {
 
 	_ = queries
 	_ = jwt
-	router.POST("/CreateUser", handlers.CreateNewUser(queries))
-	// router.POST("/Login", handlers.LoginHandler)
+	router.POST("/signUp", handlers.SignUpUser(queries, jwt), handlers.CreateNewUser(queries))
+	router.GET("/signIn", handlers.SignInUser(queries, jwt))
+	router.POST("/delete", auth.TokenChecker(jwt), handlers.DeleteUser(queries, jwt))
 	// router.GET("/GetBalance", handlers.TokenChecker, handlers.GetUsersBalance)
 	// router.DELETE("/DeleteUser", handlers.DeleteUser)
 	// router.PUT("/SendMoney", handlers.TokenChecker, handlers.SendMoney)

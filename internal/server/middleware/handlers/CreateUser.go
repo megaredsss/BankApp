@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"BankApp/internal/db"
+	"errors"
 	"net/http"
 	"net/mail"
 
@@ -9,37 +10,20 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type requestData struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-}
-
-// CreateUser godoc
-// @Summary      Создание нового пользователя
-// @Description  Создание нового пользователя с заданными данными
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Param        user body models.UserDb true "Данные нового пользователя"
-// @Success      200 {object} models.UserDb "Успешное создание пользователя"
-// @Failure      400 {object} gin.H{"error": "Ошибка валидации данных"}
-// @Failure      500 {object} gin.H{"error": "Ошибка сервера"}
-// @Router       /CreateUser [post]
 func CreateNewUser(queries *db.Queries) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log, _ := c.MustGet("logger").(*zerolog.Logger)
-		var newUserData requestData
-		if err := c.ShouldBindJSON(&newUserData); err != nil {
-			log.Error().Err(err).Msg("Failed to bind JSON for CreateUser")
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			c.Abort()
-			return
+		userDataGet, exist := c.Get("userData")
+		if !exist {
+			log.Err(errors.New("value not found in context")).Msg("CreateNewUser data not found in gin context")
+		}
+		userData, ok := userDataGet.(RequestData)
+		if !ok {
+			log.Err(errors.New("error in type assertion")).Msg("Wrong type of userData in gin Context")
 		}
 		newUser := db.CreateUserParams{
-			Email:    newUserData.Email,
-			Password: newUserData.Password,
+			Email:    userData.Email,
+			Password: userData.Password,
 		}
 		if _, err := mail.ParseAddress(newUser.Email); err != nil {
 			log.Error().Err(err).Msg("Invalid email format")
@@ -60,8 +44,8 @@ func CreateNewUser(queries *db.Queries) gin.HandlerFunc {
 		}
 		userProfile := db.CreateUserProfileParams{
 			UsersID:   id,
-			FirstName: newUserData.FirstName,
-			LastName:  newUserData.LastName,
+			FirstName: userData.FirstName,
+			LastName:  userData.LastName,
 		}
 		if _, err := queries.CreateUserProfile(c.Request.Context(), userProfile); err != nil {
 			log.Error().Err(err).Msg("Failed to create user profile")
